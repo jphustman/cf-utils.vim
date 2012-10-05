@@ -3,17 +3,27 @@
 <cfset MyVar = var1 <!--- & var2 --->> 
 <cfoutput>#Dateformat(now() <!---, "dddd, mmmm yyyy" --->)#</cfoutput> 
 
+<cfif expression>
+<h1>First if</h1>
+<cfelseif expression>
+<h2>Else If</h2>
+<cfelse>
+<h3>Just an else statement</h3>
+</cfif>
+
+
+
 <!--- disable this code 
 <!--- display error message ---> 
 <cfset errormessage1="Oops!"> 
 <cfoutput> 
     #errormessage1# 
-</cfoutput> 
+    </cfoutput> 
 --->
 
 <cfoutput>
     Hello #YourName#! <br> 
-</cfoutput>
+    </cfoutput>
 
 
 <cfset YourName="Bob">
@@ -33,10 +43,10 @@
 <cfset myArgs.url="#theURL#"> 
 <!--- Include a user name and password only if they are available. ---> 
 <cfif IsDefined("username")> 
-    <cfset myArgs.username="#username#"> 
+<cfset myArgs.username="#username#"> 
 </cfif> 
 <cfif IsDefined("password")>
-    <cfset myArgs.password="#password#"> 
+<cfset myArgs.password="#password#"> 
 </cfif> 
 <cfset myArgs.resolveURL="#resolveURL#"> 
 <cfset myArgs.timeout="2"> 
@@ -45,11 +55,11 @@
 <cfhttp attributeCollection="#myArgs#"> 
 <cfoutput> 
     #cfhttp.fileContent# 
-</cfoutput>
+    </cfoutput>
 
 <cfscript>
     param name="paramname" default="value" min="minvalue" max="maxvalue" pattern="pattern" 
-</cfscript>
+    </cfscript>
 
 <cfscript> 
     qry = new Query(); 
@@ -57,20 +67,20 @@
     qry.setSQL("delete from art where artid=62"); 
     qry.execute(); 
     TRANSACTION action="begin" {
-    writeoutput("Transaction in cfscript test"); 
-    TRANSACTION action="begin" { 
-    qry.setSQL("insert into art(artid, artistid, artname, description, issold, price) 
-    values ( 62, 1, 'art12', 'something', 1, 100)"); 
-    qry.execute();
+        writeoutput("Transaction in cfscript test"); 
+        TRANSACTION action="begin" { 
+            qry.setSQL("insert into art(artid, artistid, artname, description, issold, price) 
+                    values ( 62, 1, 'art12', 'something', 1, 100)"); 
+                qry.execute();
+        } 
+        transactionSetSavepoint("sp01"); 
+        qry.setSQL("update art set artname='art45' where artid=62"); 
+        qry.execute(); 
+        transactionSetSavepoint("sp02"); 
+        qry.setSQL("update art set artname='art56' where artid=62"); 
+        qry.execute(); 
+        transactionrollback("sp02"); 
+        transactioncommit(); 
     } 
-    transactionSetSavepoint("sp01"); 
-    qry.setSQL("update art set artname='art45' where artid=62"); 
-    qry.execute(); 
-    transactionSetSavepoint("sp02"); 
-    qry.setSQL("update art set artname='art56' where artid=62"); 
-    qry.execute(); 
-    transactionrollback("sp02"); 
-    transactioncommit(); 
-    } 
-</cfscript>
+    </cfscript>
 

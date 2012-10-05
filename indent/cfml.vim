@@ -49,7 +49,6 @@ endfun
 
 " [-- <ELEMENT ? - - ...> --]
 call <SID>CFMLIndentPush('cfcache')
-call <SID>CFMLIndentPush('cfcase')
 call <SID>CFMLIndentPush('cfcatch')
 call <SID>CFMLIndentPush('cfchart')
 call <SID>CFMLIndentPush('cfchartseries')
@@ -62,6 +61,7 @@ call <SID>CFMLIndentPush('cfform')
 call <SID>CFMLIndentPush('cffunction')
 call <SID>CFMLIndentPush('cfgrid')
 call <SID>CFMLIndentPush('cfif')
+"call <SID>CFMLIndentPush('cfinvoke')
 call <SID>CFMLIndentPush('cfloop')
 call <SID>CFMLIndentPush('cfoutput')
 call <SID>CFMLIndentPush('cfquery')
@@ -148,11 +148,6 @@ fun! GetCFMLIndent(lnum)
     let restore_ic = &ic
     setlocal ic " ignore case
 
-    " Compiler directives should always go in column zero.
-    if this_codeline =~ '^\s*{\(\$cfif\|\$cfelse\|\$\/cfif\)'
-        return 0
-    endif
-
 
     " [-- special handling for <pre>: no indenting --]
     if getline(a:lnum) =~ '\c</pre>'
@@ -166,7 +161,7 @@ fun! GetCFMLIndent(lnum)
     endif
 
     " [-- special handling for <javascript>: use cindent --]
-    let js = '<script'
+    let js = '<script.*type\s*=\s*.*java'
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     " by Tye Zdrojewski <zdro@yahoo.com>, 05 Jun 2006
@@ -198,10 +193,45 @@ fun! GetCFMLIndent(lnum)
     "      the pair will still match if we are before the beginning of the
     "      pair.
     "
-    if   0 < searchpair(js, '', '</cfscript>', 'nWb')
-                \ && 0 < searchpair(js, '', '</cfscript>', 'nW')
+    if   0 < searchpair(cfs, '', '</cfscript>', 'nWb')
+                \ && 0 < searchpair(cfs, '', '</cfscript>', 'nW')
         " we're inside cfscript
-        if getline(lnum) !~ js && getline(a:lnum) != '</cfscript>'
+        "
+        
+        if getline(lnum) !~ cfs && getline(a:lnum) != '</cfscript>'
+            if restore_ic == 0
+                setlocal noic
+            endif
+            "return cindent(a:lnum)
+            
+            "return cindent(a:lnum)
+        endif
+    endif
+
+    " [-- special handling for <pre>: no indenting --]
+    if getline(a:lnum) =~ '\c<cfelse>'
+        "\ || 0 < searchpair('\c<pre>', '', '\c</pre>', 'nWb')
+        "\ || 0 < searchpair('\c<pre>', '', '\c</pre>', 'nW')
+        " we're in a line with </pre> or inside <pre> ... </pre>
+
+        return indent(lnum) - &sw
+    endif
+
+    " [-- special handling for <cfquery>: use sql.vim --]
+    let cfsql = '\c<cfquery'
+
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    " by Tye Zdrojewski <zdro@yahoo.com>, 05 Jun 2006
+    " ZDR: This needs to be an AND (we are 'after the start of the pair' AND
+    "      we are 'before the end of the pair').  Otherwise, indentation
+    "      before the start of the script block will be affected; the end of
+    "      the pair will still match if we are before the beginning of the
+    "      pair.
+    "
+    if   0 < searchpair(cfsql, '', '</cfquery>', 'nWb')
+                \ && 0 < searchpair(cfs, '', '</cfquery>', 'nW')
+        " we're inside cfscript
+        if getline(lnum) !~ cfsql && getline(a:lnum) != '</cfquery>'
             if restore_ic == 0
                 setlocal noic
             endif
@@ -209,35 +239,7 @@ fun! GetCFMLIndent(lnum)
         endif
     endif
 
-    if getline(lnum) =~ '\c</pre>'
-        " line before the current line a:lnum contains
-        " a closing </pre>. --> search for line before
-        " starting <pre> to restore the indent.
-        let preline = prevnonblank(search('\c<pre>', 'bW') - 1)
-        if preline > 0
-            if restore_ic == 0
-                setlocal noic
-            endif
-            return indent(preline)
-        endif
-    endif
 
-    " If the previous line was indenting...
-    if prev_codeline =~ '^\s*\<\(cfif\|cfcase\|cfelse\)\>'
-        " then indent.
-        let indnt = indnt + &shiftwidth
-        " BUT... if this is the start of a multistatement block then we
-        " need to align the begin with the previous line.
-        if this_codeline =~ '^\s*cfif\>'
-            return indnt - &shiftwidth
-        endif
-
-        " We also need to keep the indentation level constant if the
-        " whole if-then statement was on one line.
-        if prev_codeline =~ '\<cfelse\>.\+'
-            let indnt = indnt - &shiftwidth
-        endif
-    endif
 
 
     let ind = <SID>CFMLIndentSum(lnum, -1)
@@ -246,8 +248,8 @@ fun! GetCFMLIndent(lnum)
     if restore_ic == 0
         setlocal noic
     endif
-
     return indent(lnum) + (&sw * ind)
+
 endfun
 
 let &cpo = s:cpo_save
