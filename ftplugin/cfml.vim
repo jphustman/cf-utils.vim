@@ -14,7 +14,7 @@ set cpo-=C
 
 
 setlocal matchpairs+=<:>
-setlocal commentstring=<!---%s--->
+setlocal commentstring=<!---\ %s\ --->
 setlocal comments=s:<!---,m:\ \ \ \ ,e:--->
 
 
@@ -36,8 +36,8 @@ endif
 
 
 " Undo the stuff we changed.
-let b:undo_ftplugin = "setlocal matchpairs< commentstring< comments< formatoptions<" .
-    \	" | unlet! b:match_ignorecase b:match_words"
+let b:undo_ftplugin = "setlocal matchpairs< commentstring< comments< "
+    \   "formatoptions< | unlet! b:match_ignorecase b:match_words"
 
 " Restore the saved compatibility options.
 let &cpo = s:save_cpo

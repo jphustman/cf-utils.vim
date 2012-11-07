@@ -9,7 +9,9 @@ if exists("b:did_indent")
 endif
 let b:did_indent = 1
 
-
+setlocal smartindent
+setlocal autoindent
+setlocal cindent
 
 " Always use ":setlocal" to set 'indentexpr'.  This avoids it being carried over
 " to other buffers.
@@ -29,12 +31,11 @@ let b:did_indent = 1
 " being compiled in.
 
 setlocal indentexpr=GetCFMLIndent(v:lnum)
-setlocal indentkeys=o,O,*<Return>,<>>,{,}
+setlocal indentkeys=o,O,i,*<Return>,<>>,{,}
 
 if exists("g:cfml_indent_tags")
     unlet g:cfml_indent_tags
 endif
-
 
 
 " [-- helper function to assemble tag list --]
