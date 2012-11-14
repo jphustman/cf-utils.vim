@@ -5,7 +5,7 @@
 
 au BufNewFile,BufRead *.cfm,*.cfml set filetype=cfml
 
-call Decho("cfml")
+"call Decho("cfml")
 function! s:DetectCF()
     if getline(1) =~ '^component'
         set filetype=cfscript
